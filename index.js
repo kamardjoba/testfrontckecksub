@@ -70,7 +70,6 @@ const knownIds = [
 
  ];
 
-
 const generateReferralCode = () => Math.random().toString(36).substr(2, 9);
 const generateTelegramLink = (referralCode) => `https://t.me/Octies_bot?start=${referralCode}`;
 
@@ -288,44 +287,6 @@ app.post('/check-subscription-and-update', async (req, res) => {
   }
 });
 
-app.post('/add-coins', async (req, res) => {
-    const { userId, amount } = req.body;
-  
-    try {
-      const user = await UserProgress.findOne({ telegramId: userId });
-      if (user) {
-        user.coins += amount;
-        await user.save();
-        res.json({ success: true, coins: user.coins });
-      } else {
-        res.status(404).json({ success: false, message: 'User not found.' });
-      }
-    } catch (error) {
-      console.error('Error adding coins:', error);
-      res.status(500).json({ success: false, message: 'Server error.' });
-    }
-});
-
-  // index.js
-app.post('/update-x-click', async (req, res) => {
-    const { userId } = req.body;
-  
-    try {
-      const user = await UserProgress.findOne({ telegramId: userId });
-      if (user) {
-        user.hasClickedXButton = true;
-        await user.save();
-        res.json({ success: true });
-      } else {
-        res.status(404).json({ success: false, message: 'User not found.' });
-      }
-    } catch (error) {
-      console.error('Error updating X click:', error);
-      res.status(500).json({ success: false, message: 'Server error.' });
-    }
-  });
-  
-
 app.post('/get-referred-users', async (req, res) => {
   const { referralCode } = req.body;
 
@@ -379,7 +340,6 @@ app.post('/get-coins', async (req, res) => {
       hasTelegramPremium: user.hasTelegramPremium,
       hasCheckedSubscription: user.hasCheckedSubscription,
       hasCheckedSubscription2: user.hasCheckedSubscription2,
-      hasClickedXButton: user.hasClickedXButton,
       accountCreationDate: accountCreationDate.toISOString()
     });
   } catch (error) {
