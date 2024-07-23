@@ -304,49 +304,67 @@ app.post('/get-referred-users', async (req, res) => {
 });
 
 app.post('/get-coins', async (req, res) => {
-  const { userId } = req.body;
-  const accountCreationDate = estimateAccountCreationDate(userId);
-
-  try {
-    const hasTelegramPremium = await checkTelegramPremium(userId);
-    const subscriptions = await checkChannelSubscription(userId);
-
-    const chatMember = await bot.getChatMember(CHANNEL_ID, userId);
-    const firstName = chatMember.user.first_name || 'Anonymous'; // Используем first_name или задаем "Anonymous"
-    const nickname = chatMember.user.username || `user_${userId}`; // Используем username или генерируем никнейм
-
-    let user = await UserProgress.findOne({ telegramId: userId });
-    const referralCoins = user.referredUsers.reduce((acc, ref) => acc + ref.earnedCoins, 0);
-    const totalCoins = user.coins + referralCoins;
-    if (!user) {
-      const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions);
-      user = new UserProgress({ telegramId: userId, nickname, firstName, coins, hasTelegramPremium, hasCheckedSubscription: subscriptions.isSubscribedToChannel1, hasCheckedSubscription2: subscriptions.isSubscribedToChannel2 });
-      await user.save();
-    } else {
-      const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions);
-      const fullCoins = coins + referralCoins;
-      user.coins = fullCoins;
-      user.nickname = nickname;
-      user.firstName = firstName; // Обновляем имя
-      user.hasTelegramPremium = hasTelegramPremium;
-      user.hasCheckedSubscription = subscriptions.isSubscribedToChannel1;
-      user.hasCheckedSubscription2 = subscriptions.isSubscribedToChannel2;
-      await user.save();
+    const { userId } = req.body;
+    const accountCreationDate = estimateAccountCreationDate(userId);
+  
+    try {
+      const hasTelegramPremium = await checkTelegramPremium(userId);
+      const subscriptions = await checkChannelSubscription(userId);
+  
+      const chatMember = await bot.getChatMember(CHANNEL_ID, userId);
+      const firstName = chatMember.user.first_name || 'Anonymous';
+      const nickname = chatMember.user.username || `user_${userId}`;
+  
+      let user = await UserProgress.findOne({ telegramId: userId });
+      if (!user) {
+        const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions);
+        user = new UserProgress({
+          telegramId: userId,
+          nickname,
+          firstName,
+          coins,
+          hasTelegramPremium,
+          hasCheckedSubscription: subscriptions.isSubscribedToChannel1,
+          hasCheckedSubscription2: subscriptions.isSubscribedToChannel2,
+          referralCode: generateReferralCode(),
+          referredUsers: []
+        });
+        await user.save();
+      } else {
+        // Убедитесь, что монеты не вычитаются повторно
+        if (!user.hasCheckedSubscription && subscriptions.isSubscribedToChannel1) {
+          user.coins += 1000;
+          user.hasCheckedSubscription = true;
+        }
+  
+        if (!user.hasCheckedSubscription2 && subscriptions.isSubscribedToChannel2) {
+          user.coins += 750;
+          user.hasCheckedSubscription2 = true;
+        }
+  
+        const referralCoins = user.referredUsers.reduce((acc, ref) => acc + ref.earnedCoins, 0);
+        user.coins += referralCoins;
+        user.nickname = nickname;
+        user.firstName = firstName;
+        user.hasTelegramPremium = hasTelegramPremium;
+  
+        await user.save();
+      }
+  
+      res.json({
+        coins: user.coins,
+        referralCoins: user.referredUsers.reduce((acc, ref) => acc + ref.earnedCoins, 0),
+        hasTelegramPremium: user.hasTelegramPremium,
+        hasCheckedSubscription: user.hasCheckedSubscription,
+        hasCheckedSubscription2: user.hasCheckedSubscription2,
+        accountCreationDate: accountCreationDate.toISOString()
+      });
+    } catch (error) {
+      console.error('Ошибка при сохранении пользователя:', error);
+      res.status(500).json({ error: 'Ошибка сервера' });
     }
-
-    res.json({
-      coins: totalCoins,
-      referralCoins: referralCoins, // Добавляем общее количество монет за рефералов в ответ
-      hasTelegramPremium: user.hasTelegramPremium,
-      hasCheckedSubscription: user.hasCheckedSubscription,
-      hasCheckedSubscription2: user.hasCheckedSubscription2,
-      accountCreationDate: accountCreationDate.toISOString()
-    });
-  } catch (error) {
-    console.error('Ошибка при сохранении пользователя:', error);
-    res.status(500).json({ error: 'Ошибка сервера' });
-  }
-});
+  });
+  
 
 app.get('/user-rank', async (req, res) => {
   const { userId } = req.query;
