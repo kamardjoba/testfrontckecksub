@@ -42,11 +42,12 @@ const UserSchema = new mongoose.Schema({
      default: false
   },
 
-  hasClickedXButton:
-   { type: Boolean,
+  hasReceivedTwitterReward:
+  {
+     type: Boolean, 
      default: false
-   },
-
+    
+  },
   referralCode:
   { 
     type: String,
