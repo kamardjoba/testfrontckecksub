@@ -113,7 +113,9 @@ function calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions) 
   const premiumBonus = hasTelegramPremium ? 500 : 0;
   const subscriptionBonus1 = subscriptions.isSubscribedToChannel1 ? 1000 : 0;
   const subscriptionBonus2 = subscriptions.isSubscribedToChannel2 ? 750 : 0;
-  return baseCoins + premiumBonus + subscriptionBonus1 + subscriptionBonus2;
+  const X_SUB = user.hasReceivedTwitterReward ? 500 : 0;
+
+  return baseCoins + premiumBonus + subscriptionBonus1 + subscriptionBonus2 + X_SUB;
 }
 
 async function checkChannelSubscription(telegramId) {
@@ -283,11 +285,7 @@ app.post('/check-subscription-and-update', async (req, res) => {
           user.hasCheckedSubscription2 = false;
         }
 
-        if(user.hasReceivedTwitterReward) {
-            updatedCoins += 500;
-        } else if(!user.hasReceivedTwitterReward) {
-            updatedCoins += 500;
-        }
+        
   
         user.coins = updatedCoins;
         await user.save();
