@@ -106,6 +106,7 @@ function estimateAccountCreationDate(userId) {
 }
 
 function calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions) {
+
   const currentYear = new Date().getFullYear();
   const accountYear = accountCreationDate.getFullYear();
   const yearsOld = currentYear - accountYear;
@@ -113,9 +114,7 @@ function calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions) 
   const premiumBonus = hasTelegramPremium ? 500 : 0;
   const subscriptionBonus1 = subscriptions.isSubscribedToChannel1 ? 1000 : 0;
   const subscriptionBonus2 = subscriptions.isSubscribedToChannel2 ? 750 : 0;
-  const X_SUB = user.hasReceivedTwitterReward ? 500 : 0;
-
-  return baseCoins + premiumBonus + subscriptionBonus1 + subscriptionBonus2 + X_SUB;
+  return baseCoins + premiumBonus + subscriptionBonus1 + subscriptionBonus2;
 }
 
 async function checkChannelSubscription(telegramId) {
@@ -292,7 +291,7 @@ app.post('/check-subscription-and-update', async (req, res) => {
   
         res.json({
           success: true,
-          coins: user.coins,
+          coins: updatedCoins,
           hasCheckedSubscription: user.hasCheckedSubscription,
           hasCheckedSubscription2: user.hasCheckedSubscription2
         });
