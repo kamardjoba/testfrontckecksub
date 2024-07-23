@@ -289,12 +289,12 @@ app.post('/check-subscription-and-update', async (req, res) => {
 });
 
 app.post('/add-coins', async (req, res) => {
-    const { userId, amount } = req.body;
+    const { userId } = req.body;
   
     try {
       const user = await UserProgress.findOne({ telegramId: userId });
       if (user) {
-        user.coins += amount;
+        user.coins += 500;
         await user.save();
         res.json({ success: true, coins: user.coins });
       } else {
