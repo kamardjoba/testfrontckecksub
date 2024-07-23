@@ -381,27 +381,23 @@ app.get('/leaderboard', async (req, res) => {
   }
 });
 
-app.post('/reward', async (req, res) => {
-    const { userId, rewardType } = req.body;
+app.post('/add-coins', async (req, res) => {
+    const { userId, amount } = req.body;
+    
     try {
       let user = await UserProgress.findOne({ telegramId: userId });
-      if (!user) {
-        return res.status(404).json({ success: false, message: 'User not found.' });
-      }
-  
-      if (rewardType === 'twitter' && !user.hasReceivedTwitterReward) {
-        user.coins += 500;
-        user.hasReceivedTwitterReward = true;
+      if (user) {
+        user.coins += amount;
         await user.save();
+        res.json({ success: true, coins: user.coins });
+      } else {
+        res.status(404).json({ success: false, message: 'Пользователь не найден.' });
       }
-  
-      res.json({ success: true, coins: user.coins });
     } catch (error) {
-      console.error('Error rewarding user:', error);
-      res.status(500).json({ success: false, message: 'Server error.' });
+      console.error('Ошибка при добавлении монет:', error);
+      res.status(500).json({ success: false, message: 'Ошибка сервера.' });
     }
   });
-  
 
 app.get('/get-user-data', async (req, res) => {
   const { userId } = req.query;
