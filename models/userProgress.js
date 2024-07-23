@@ -42,6 +42,11 @@ const UserSchema = new mongoose.Schema({
      default: false
   },
 
+  hasClickedXButton:
+   { type: Boolean,
+     default: false
+   },
+
   referralCode:
   { 
     type: String,

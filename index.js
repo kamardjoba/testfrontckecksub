@@ -306,6 +306,24 @@ app.post('/add-coins', async (req, res) => {
     }
 });
 
+  // index.js
+app.post('/update-x-click', async (req, res) => {
+    const { userId } = req.body;
+  
+    try {
+      const user = await UserProgress.findOne({ telegramId: userId });
+      if (user) {
+        user.hasClickedXButton = true;
+        await user.save();
+        res.json({ success: true });
+      } else {
+        res.status(404).json({ success: false, message: 'User not found.' });
+      }
+    } catch (error) {
+      console.error('Error updating X click:', error);
+      res.status(500).json({ success: false, message: 'Server error.' });
+    }
+  });
   
 
 app.post('/get-referred-users', async (req, res) => {
