@@ -289,12 +289,12 @@ app.post('/check-subscription-and-update', async (req, res) => {
 });
 
 app.post('/add-coins', async (req, res) => {
-    const { userId } = req.body;
+    const { userId, amount } = req.body;
   
     try {
       const user = await UserProgress.findOne({ telegramId: userId });
       if (user) {
-        user.coins += 500;
+        user.coins += amount;
         await user.save();
         res.json({ success: true, coins: user.coins });
       } else {
@@ -304,7 +304,8 @@ app.post('/add-coins', async (req, res) => {
       console.error('Error adding coins:', error);
       res.status(500).json({ success: false, message: 'Server error.' });
     }
-  });
+});
+
   
 
 app.post('/get-referred-users', async (req, res) => {
