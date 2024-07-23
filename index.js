@@ -333,21 +333,22 @@ app.post('/get-coins', async (req, res) => {
     const subscriptions = await checkChannelSubscription(userId);
 
     const chatMember = await bot.getChatMember(CHANNEL_ID, userId);
-    const firstName = chatMember.user.first_name || 'Anonymous';
-    const nickname = chatMember.user.username || `user_${userId}`;
+    const firstName = chatMember.user.first_name || 'Anonymous'; // Используем first_name или задаем "Anonymous"
+    const nickname = chatMember.user.username || `user_${userId}`; // Используем username или генерируем никнейм
 
     let user = await UserProgress.findOne({ telegramId: userId });
-    const referralCoins = user ? user.referredUsers.reduce((acc, ref) => acc + ref.earnedCoins, 0) : 0;
-
+    const referralCoins = user.referredUsers.reduce((acc, ref) => acc + ref.earnedCoins, 0);
+    const totalCoins = user.coins + referralCoins;
     if (!user) {
       const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions);
       user = new UserProgress({ telegramId: userId, nickname, firstName, coins, hasTelegramPremium, hasCheckedSubscription: subscriptions.isSubscribedToChannel1, hasCheckedSubscription2: subscriptions.isSubscribedToChannel2 });
       await user.save();
     } else {
       const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions);
-      user.coins += coins; // Здесь добавляем новые монеты к уже существующим
+      const fullCoins = coins + referralCoins;
+      user.coins = fullCoins;
       user.nickname = nickname;
-      user.firstName = firstName;
+      user.firstName = firstName; // Обновляем имя
       user.hasTelegramPremium = hasTelegramPremium;
       user.hasCheckedSubscription = subscriptions.isSubscribedToChannel1;
       user.hasCheckedSubscription2 = subscriptions.isSubscribedToChannel2;
@@ -355,8 +356,8 @@ app.post('/get-coins', async (req, res) => {
     }
 
     res.json({
-      coins: user.coins + referralCoins, // Общее количество монет
-      referralCoins: referralCoins,
+      coins: totalCoins,
+      referralCoins: referralCoins, // Добавляем общее количество монет за рефералов в ответ
       hasTelegramPremium: user.hasTelegramPremium,
       hasCheckedSubscription: user.hasCheckedSubscription,
       hasCheckedSubscription2: user.hasCheckedSubscription2,
@@ -367,7 +368,6 @@ app.post('/get-coins', async (req, res) => {
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
-
 
 app.get('/user-rank', async (req, res) => {
   const { userId } = req.query;
