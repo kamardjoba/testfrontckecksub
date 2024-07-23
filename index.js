@@ -379,6 +379,7 @@ app.post('/get-coins', async (req, res) => {
       hasTelegramPremium: user.hasTelegramPremium,
       hasCheckedSubscription: user.hasCheckedSubscription,
       hasCheckedSubscription2: user.hasCheckedSubscription2,
+      hasClickedXButton: user.hasClickedXButton,
       accountCreationDate: accountCreationDate.toISOString()
     });
   } catch (error) {
