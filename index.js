@@ -263,7 +263,7 @@ app.post('/check-subscription-and-update', async (req, res) => {
         const referralCoins = user.referredUsers.reduce((acc, ref) => acc + ref.earnedCoins, 0);
         const totalCoins = user.coins + referralCoins;
   
-        let updatedCoins = totalCoins;
+        let updatedCoins = user.coins;
   
         // Проверка подписки на первый канал
         if (subscriptions.isSubscribedToChannel1 && !user.hasCheckedSubscription) {
@@ -282,13 +282,19 @@ app.post('/check-subscription-and-update', async (req, res) => {
           updatedCoins -= 750; // Вычитаем монеты за отписку от второго канала
           user.hasCheckedSubscription2 = false;
         }
+
+        if(user.hasReceivedTwitterReward) {
+            updatedCoins += 500;
+        } else if(!user.hasReceivedTwitterReward) {
+            updatedCoins += 500;
+        }
   
         user.coins = updatedCoins;
         await user.save();
   
         res.json({
           success: true,
-          coins: updatedCoins,
+          coins: user.coins,
           hasCheckedSubscription: user.hasCheckedSubscription,
           hasCheckedSubscription2: user.hasCheckedSubscription2
         });
