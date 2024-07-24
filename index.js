@@ -287,81 +287,81 @@ app.post('/add-referral', async (req, res) => {
 
 app.post('/check-subscription-and-update', async (req, res) => {
     const { userId } = req.body;
-  
+
     try {
-      const subscriptions = await checkChannelSubscription(userId);
-      let user = await UserProgress.findOne({ telegramId: userId });
-  
-      if (user) {
-        const referralCoins = user.referredUsers.reduce((acc, ref) => acc + ref.earnedCoins, 0);
-        const totalCoins = user.coins + referralCoins;
-  
-        let updatedCoins = user.coins;
-        // Проверка подписки на первый канал
-        if (subscriptions.isSubscribedToChannel1 && !user.hasCheckedSubscription) {
-          updatedCoins += 1000, // Добавляем награду за подписку на первый канал
-          user.coinsSub += 1000;
-          user.hasCheckedSubscription = true;
-        } else if (!subscriptions.isSubscribedToChannel1 && user.hasCheckedSubscription) {
-          updatedCoins -= 1000, // Вычитаем монеты за отписку от первого канала
-          user.coinsSub -= 1000;
+        const subscriptions = await checkChannelSubscription(userId);
+        let user = await UserProgress.findOne({ telegramId: userId });
 
-          user.hasCheckedSubscription = false;
+        if (user) {
+            let updatedCoins = user.coins;
+            let updatedCoinsSub = user.coinsSub;
+
+            // Проверка подписки на первый канал
+            if (subscriptions.isSubscribedToChannel1 && !user.hasCheckedSubscription) {
+                updatedCoins += 1000; // Добавляем награду за подписку на первый канал
+                updatedCoinsSub += 1000; // Сохраняем монеты за подписку в отдельное поле
+                user.hasCheckedSubscription = true;
+            } else if (!subscriptions.isSubscribedToChannel1 && user.hasCheckedSubscription) {
+                updatedCoins -= 1000; // Вычитаем монеты за отписку от первого канала
+                updatedCoinsSub -= 1000; // Вычитаем монеты за отписку в отдельное поле
+                user.hasCheckedSubscription = false;
+            }
+
+            // Проверка подписки на второй канал
+            if (subscriptions.isSubscribedToChannel2 && !user.hasCheckedSubscription2) {
+                updatedCoins += 750; // Добавляем награду за подписку на второй канал
+                updatedCoinsSub += 750; // Сохраняем монеты за подписку в отдельное поле
+                user.hasCheckedSubscription2 = true;
+            } else if (!subscriptions.isSubscribedToChannel2 && user.hasCheckedSubscription2) {
+                updatedCoins -= 750; // Вычитаем монеты за отписку от второго канала
+                updatedCoinsSub -= 750; // Вычитаем монеты за отписку в отдельное поле
+                user.hasCheckedSubscription2 = false;
+            }
+
+            // Проверка подписки на третий канал
+            if (subscriptions.isSubscribedToChannel3 && !user.hasCheckedSubscription3) {
+                updatedCoins += 750; // Добавляем награду за подписку на третий канал
+                updatedCoinsSub += 750; // Сохраняем монеты за подписку в отдельное поле
+                user.hasCheckedSubscription3 = true;
+            } else if (!subscriptions.isSubscribedToChannel3 && user.hasCheckedSubscription3) {
+                updatedCoins -= 750; // Вычитаем монеты за отписку от третьего канала
+                updatedCoinsSub -= 750; // Вычитаем монеты за отписку в отдельное поле
+                user.hasCheckedSubscription3 = false;
+            }
+
+            // Проверка подписки на четвертый канал
+            if (subscriptions.isSubscribedToChannel4 && !user.hasCheckedSubscription4) {
+                updatedCoins += 750; // Добавляем награду за подписку на четвертый канал
+                updatedCoinsSub += 750; // Сохраняем монеты за подписку в отдельное поле
+                user.hasCheckedSubscription4 = true;
+            } else if (!subscriptions.isSubscribedToChannel4 && user.hasCheckedSubscription4) {
+                updatedCoins -= 750; // Вычитаем монеты за отписку от четвертого канала
+                updatedCoinsSub -= 750; // Вычитаем монеты за отписку в отдельное поле
+                user.hasCheckedSubscription4 = false;
+            }
+
+            user.coins = updatedCoins;
+            user.coinsSub = updatedCoinsSub;
+            await user.save();
+
+            res.json({
+                success: true,
+                coins: updatedCoins,
+                coinsSub: updatedCoinsSub,
+                hasCheckedSubscription: user.hasCheckedSubscription,
+                hasCheckedSubscription2: user.hasCheckedSubscription2,
+                hasCheckedSubscription3: user.hasCheckedSubscription3,
+                hasCheckedSubscription4: user.hasCheckedSubscription4
+            });
+        } else {
+            res.status(404).json({ success: false, message: 'Пользователь не найден.' });
         }
-    
-        // Проверка подписки на второй канал
-        if (subscriptions.isSubscribedToChannel2 && !user.hasCheckedSubscription2) {
-          updatedCoins += 750, // Добавляем награду за подписку на второй канал
-          user.coinsSub += 750;
-          user.hasCheckedSubscription2 = true;
-        } else if (!subscriptions.isSubscribedToChannel2 && user.hasCheckedSubscription2) {
-          updatedCoins -= 750; // Вычитаем монеты за отписку от второго канала
-          user.coinsSub -= 750;
-
-          user.hasCheckedSubscription2 = false;
-        }
-
-        if (subscriptions.isSubscribedToChannel3 && !user.hasCheckedSubscription3) {
-            updatedCoins += 750, // Добавляем награду за подписку на второй канал
-            user.coinsSub += 750;
-            user.hasCheckedSubscription3 = true;
-          } else if (!subscriptions.isSubscribedToChannel3 && user.hasCheckedSubscription3) {
-            updatedCoins -= 750, // Вычитаем монеты за отписку от второго канала
-            user.coinsSub -= 750;
-            user.hasCheckedSubscription3 = false;
-        }
-        
-        if (subscriptions.isSubscribedToChannel4 && !user.hasCheckedSubscription4) {
-            updatedCoins += 750, // Добавляем награду за подписку на второй канал
-            user.coinsSub += 750;
-            user.hasCheckedSubscription4 = true;
-          } else if (!subscriptions.isSubscribedToChannel4 && user.hasCheckedSubscription4) {
-            updatedCoins -= 750, // Вычитаем монеты за отписку от второго канала
-            user.coinsSub -= 750;
-            user.hasCheckedSubscription4 = false;
-          }
-  
-
-        user.coins = updatedCoins;
-        await user.save();
-        res.json({
-          success: true,
-          Coinsub: user.coinsSub,
-          coins: updatedCoins,
-          hasCheckedSubscription: user.hasCheckedSubscription,
-          hasCheckedSubscription2: user.hasCheckedSubscription2,
-          hasCheckedSubscription3: user.hasCheckedSubscription3,
-          hasCheckedSubscription4: user.hasCheckedSubscription4
-
-        });
-      } else {
-        res.status(404).json({ success: false, message: 'Пользователь не найден.' });
-      }
     } catch (error) {
-      console.error('Ошибка при проверке подписки:', error);
-      res.status(500).json({ error: 'Ошибка сервера' });
+        console.error('Ошибка при проверке подписки:', error);
+        res.status(500).json({ error: 'Ошибка сервера' });
     }
-  });
+});
+
   
 
 app.post('/get-referred-users', async (req, res) => {
