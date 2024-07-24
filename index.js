@@ -13,7 +13,8 @@ const port = process.env.PORT || 3001;
 const token = '7222673541:AAFqnlKKizzWcDB08QBJDRdqnmp21Onldro';
 const bot = new TelegramBot(token, { polling: true });
 const CHANNEL_ID = -1002246870197; 
-const CHANNEL_ID_2 = -1002088709942; 
+const CHANNEL_ID_2 = -1002088709942;
+const CHANNEL_ID_3 = -1002241923161 
 
 const userStates = {};
 
@@ -114,7 +115,9 @@ function calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions) 
   const premiumBonus = hasTelegramPremium ? 500 : 0;
   const subscriptionBonus1 = subscriptions.isSubscribedToChannel1 ? 1000 : 0;
   const subscriptionBonus2 = subscriptions.isSubscribedToChannel2 ? 750 : 0;
-  return baseCoins + premiumBonus + subscriptionBonus1 + subscriptionBonus2;
+  const subscriptionBonus3 = subscriptions.isSubscribedToChannel3 ? 750 : 0;
+
+  return baseCoins + premiumBonus + subscriptionBonus1 + subscriptionBonus2 + subscriptionBonus3;
 }
 
 async function checkChannelSubscription(telegramId) {
@@ -133,16 +136,26 @@ async function checkChannelSubscription(telegramId) {
       }
     });
 
+    const response3 = await axios.get(`https://api.telegram.org/bot${token}/getChatMember`, {
+        params: {
+          chat_id: CHANNEL_ID_3,
+          user_id: telegramId
+        }
+      });
+
     const status1 = response1.data.result.status;
     const status2 = response2.data.result.status;
+    const status3 = response3.data.result.status;
 
     const isSubscribedToChannel1 = ['member', 'administrator', 'creator'].includes(status1);
     const isSubscribedToChannel2 = ['member', 'administrator', 'creator'].includes(status2);
+    const isSubscribedToChannel3 = ['member', 'administrator', 'creator'].includes(status3);
 
-    return { isSubscribedToChannel1, isSubscribedToChannel2 };
+
+    return { isSubscribedToChannel1, isSubscribedToChannel2, isSubscribedToChannel3 };
   } catch (error) {
     console.error('Ошибка при проверке подписки на канал:', error);
-    return { isSubscribedToChannel1: false, isSubscribedToChannel2: false };
+    return { isSubscribedToChannel1: false, isSubscribedToChannel2: false, isSubscribedToChannel3: false };
   }
 }
 
@@ -207,9 +220,13 @@ app.post('/check-subscription', async (req, res) => {
         user.coins += 750; // Добавляем награду за подписку на второй канал
         user.hasCheckedSubscription2 = true;
       }
+      if (subscriptions.isSubscribedToChannel3 && !user.hasCheckedSubscription3) {
+        user.coins += 750; // Добавляем награду за подписку на второй канал
+        user.hasCheckedSubscription3 = true;
+      }
       await user.save();
     } else {
-      user = new UserProgress({ telegramId: userId, coins: 1000, hasCheckedSubscription: subscriptions.isSubscribedToChannel1, hasCheckedSubscription2: subscriptions.isSubscribedToChannel2 });
+      user = new UserProgress({ telegramId: userId, coins: 1000, hasCheckedSubscription: subscriptions.isSubscribedToChannel1, hasCheckedSubscription2: subscriptions.isSubscribedToChannel2,hasCheckedSubscription3: subscriptions.isSubscribedToChannel3 });
       await user.save();
     }
     res.json({ subscriptions });
@@ -284,16 +301,24 @@ app.post('/check-subscription-and-update', async (req, res) => {
           user.hasCheckedSubscription2 = false;
         }
 
-        
+        if (subscriptions.isSubscribedToChannel3 && !user.hasCheckedSubscription3) {
+            updatedCoins += 750; // Добавляем награду за подписку на второй канал
+            user.hasCheckedSubscription3 = true;
+          } else if (!subscriptions.isSubscribedToChannel3 && user.hasCheckedSubscription3) {
+            updatedCoins -= 750; // Вычитаем монеты за отписку от второго канала
+            user.hasCheckedSubscription3 = false;
+          }
   
+
         user.coins = updatedCoins;
         await user.save();
-  
         res.json({
           success: true,
           coins: updatedCoins,
           hasCheckedSubscription: user.hasCheckedSubscription,
-          hasCheckedSubscription2: user.hasCheckedSubscription2
+          hasCheckedSubscription2: user.hasCheckedSubscription2,
+          hasCheckedSubscription3: user.hasCheckedSubscription3
+
         });
       } else {
         res.status(404).json({ success: false, message: 'Пользователь не найден.' });
@@ -338,7 +363,7 @@ app.post('/get-coins', async (req, res) => {
     const totalCoins = user.coins + referralCoins;
     if (!user) {
       const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions);
-      user = new UserProgress({ telegramId: userId, nickname, firstName, coins, hasTelegramPremium, hasCheckedSubscription: subscriptions.isSubscribedToChannel1, hasCheckedSubscription2: subscriptions.isSubscribedToChannel2 });
+      user = new UserProgress({ telegramId: userId, nickname, firstName, coins, hasTelegramPremium, hasCheckedSubscription: subscriptions.isSubscribedToChannel1, hasCheckedSubscription2: subscriptions.isSubscribedToChannel2, hasCheckedSubscription3: subscriptions.isSubscribedToChannel3 });
       await user.save();
     } else {
       const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions);
@@ -349,6 +374,8 @@ app.post('/get-coins', async (req, res) => {
       user.hasTelegramPremium = hasTelegramPremium;
       user.hasCheckedSubscription = subscriptions.isSubscribedToChannel1;
       user.hasCheckedSubscription2 = subscriptions.isSubscribedToChannel2;
+      user.hasCheckedSubscription3 = subscriptions.isSubscribedToChannel3;
+
       await user.save();
     }
 
@@ -358,6 +385,7 @@ app.post('/get-coins', async (req, res) => {
       hasTelegramPremium: user.hasTelegramPremium,
       hasCheckedSubscription: user.hasCheckedSubscription,
       hasCheckedSubscription2: user.hasCheckedSubscription2,
+      hasCheckedSubscription3: user.hasCheckedSubscription3,
       accountCreationDate: accountCreationDate.toISOString()
     });
   } catch (error) {
