@@ -404,6 +404,7 @@ app.post('/get-coins', async (req, res) => {
 
       await user.save();
     }
+    
 
     res.json({
       coins: totalCoins,
