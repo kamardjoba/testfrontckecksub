@@ -47,6 +47,11 @@ const UserSchema = new mongoose.Schema({
      default: false
   },
 
+  hasCheckedSubscription4:
+  { type: Boolean,
+     default: false
+  },
+
   hasReceivedTwitterReward:
   {
      type: Boolean, 
