@@ -299,7 +299,7 @@ app.post('/check-subscription-and-update', async (req, res) => {
         const referralCoins = user.referredUsers.reduce((acc, ref) => acc + ref.earnedCoins, 0);
         const totalCoins = user.coins + referralCoins;
   
-        let updatedCoins = user.coinsSub;
+        let updatedCoins = user.coins;
         // Проверка подписки на первый канал
         if (subscriptions.isSubscribedToChannel1 && !user.hasCheckedSubscription) {
           updatedCoins += 1000; // Добавляем награду за подписку на первый канал
