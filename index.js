@@ -397,7 +397,7 @@ app.post('/get-coins', async (req, res) => {
     let user = await UserProgress.findOne({ telegramId: userId });
     const referralCoins = user.referredUsers.reduce((acc, ref) => acc + ref.earnedCoins, 0);
     const totalCoins = user.coins + referralCoins;
-    const hasReceivedTwitterReward = user.hasReceivedTwitterReward;
+    const hasReceivedTwitterReward = user ? user.hasReceivedTwitterReward : false;
 
     if (!user) {
       const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions, hasReceivedTwitterReward);
@@ -415,6 +415,8 @@ app.post('/get-coins', async (req, res) => {
       user.hasCheckedSubscription2 = subscriptions.isSubscribedToChannel2;
       user.hasCheckedSubscription3 = subscriptions.isSubscribedToChannel3;
       user.hasCheckedSubscription4 = subscriptions.isSubscribedToChannel4;
+      user.hasReceivedTwitterReward = hasReceivedTwitterReward;
+
 
       await user.save();
     }
