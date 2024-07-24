@@ -25,6 +25,12 @@ const UserSchema = new mongoose.Schema({
     type: Number, 
     default: 0 
   },
+  coinsSub:
+  { 
+    type: Number, 
+    default: 0 
+  },
+
 
   hasTelegramPremium:
   { 
@@ -57,12 +63,6 @@ const UserSchema = new mongoose.Schema({
      type: Boolean, 
      default: false
     
-  },
-
-  coinsSub:
-  { 
-    type: Number, 
-    default: 0 
   },
 
   referralCode:

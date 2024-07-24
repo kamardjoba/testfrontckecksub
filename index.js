@@ -417,6 +417,7 @@ app.post('/get-coins', async (req, res) => {
 
     res.json({
       coins: totalCoins,
+      SUBCCOINS: user.coinsSub,
       referralCoins: referralCoins, // Добавляем общее количество монет за рефералов в ответ
       hasTelegramPremium: user.hasTelegramPremium,
       hasCheckedSubscription: user.hasCheckedSubscription,
