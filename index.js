@@ -118,8 +118,6 @@ function calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions) 
   const subscriptionBonus2 = subscriptions.isSubscribedToChannel2 ? 750 : 0;
   const subscriptionBonus3 = subscriptions.isSubscribedToChannel3 ? 750 : 0;
   const subscriptionBonus4 = subscriptions.isSubscribedToChannel4 ? 750 : 0;
-
-
   return baseCoins + premiumBonus + subscriptionBonus1 + subscriptionBonus2 + subscriptionBonus3 + subscriptionBonus4;
 }
 
@@ -226,18 +224,22 @@ app.post('/check-subscription', async (req, res) => {
     if (user) {
       if (subscriptions.isSubscribedToChannel1 && !user.hasCheckedSubscription) {
         user.coins += 1000; // Добавляем награду за подписку на первый канал
+        user.coinsSub += 1000;
         user.hasCheckedSubscription = true;
       }
       if (subscriptions.isSubscribedToChannel2 && !user.hasCheckedSubscription2) {
-        user.coins += 750; // Добавляем награду за подписку на второй канал
+        user.coins += 750;
+        user.coinsSub += 750; // Добавляем награду за подписку на второй канал
         user.hasCheckedSubscription2 = true;
       }
       if (subscriptions.isSubscribedToChannel3 && !user.hasCheckedSubscription3) {
-        user.coins += 750; // Добавляем награду за подписку на второй канал
+        user.coins += 750;
+        user.coinsSub += 750; // Добавляем награду за подписку на второй канал
         user.hasCheckedSubscription3 = true;
       }
       if (subscriptions.isSubscribedToChannel4 && !user.hasCheckedSubscription4) {
-        user.coins += 750; // Добавляем награду за подписку на второй канал
+        user.coins += 750;
+        user.coinsSub += 750; // Добавляем награду за подписку на второй канал
         user.hasCheckedSubscription4 = true;
       }
       await user.save();
@@ -297,8 +299,7 @@ app.post('/check-subscription-and-update', async (req, res) => {
         const referralCoins = user.referredUsers.reduce((acc, ref) => acc + ref.earnedCoins, 0);
         const totalCoins = user.coins + referralCoins;
   
-        let updatedCoins = user.coins;
-  
+        let updatedCoins = user.coinsSub;
         // Проверка подписки на первый канал
         if (subscriptions.isSubscribedToChannel1 && !user.hasCheckedSubscription) {
           updatedCoins += 1000; // Добавляем награду за подписку на первый канал
@@ -404,7 +405,7 @@ app.post('/get-coins', async (req, res) => {
 
       await user.save();
     }
-    
+
 
     res.json({
       coins: totalCoins,

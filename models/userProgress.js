@@ -58,6 +58,13 @@ const UserSchema = new mongoose.Schema({
      default: false
     
   },
+
+  coinsSub:
+  { 
+    type: Number, 
+    default: 0 
+  },
+
   referralCode:
   { 
     type: String,
