@@ -285,6 +285,25 @@ app.post('/add-referral', async (req, res) => {
   }
 });
 
+app.post('/update-coins', async (req, res) => {
+    const { userId, amount } = req.body;
+  
+    try {
+        let user = await UserProgress.findOne({ telegramId: userId });
+        if (user) {
+            user.coins += amount;
+            await user.save();
+            res.json({ success: true, coins: user.coins });
+        } else {
+            res.status(404).json({ success: false, message: 'Пользователь не найден.' });
+        }
+    } catch (error) {
+        console.error('Ошибка при обновлении монет:', error);
+        res.status(500).json({ success: false, message: 'Ошибка сервера' });
+    }
+});
+
+
 app.post('/check-subscription-and-update', async (req, res) => {
     const { userId } = req.body;
 
@@ -400,30 +419,17 @@ app.post('/get-coins', async (req, res) => {
       user = new UserProgress({ telegramId: userId, nickname, firstName, coins, hasTelegramPremium, hasCheckedSubscription: subscriptions.isSubscribedToChannel1, hasCheckedSubscription2: subscriptions.isSubscribedToChannel2, hasCheckedSubscription3: subscriptions.isSubscribedToChannel3, hasCheckedSubscription4: subscriptions.isSubscribedToChannel4 });
       await user.save();
     } else {
-        if(user.hasReceivedTwitterReward){
-            
-            const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions);
-            const fullCoins = coins + referralCoins;
-             user.coins = fullCoins + 500;
-             user.nickname = nickname;
-             user.firstName = firstName; // Обновляем имя
+      const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions);
+      const fullCoins = coins + referralCoins;
+      user.coins = fullCoins;
+      user.nickname = nickname;
+      user.firstName = firstName; // Обновляем имя
       user.hasTelegramPremium = hasTelegramPremium;
       user.hasCheckedSubscription = subscriptions.isSubscribedToChannel1;
       user.hasCheckedSubscription2 = subscriptions.isSubscribedToChannel2;
       user.hasCheckedSubscription3 = subscriptions.isSubscribedToChannel3;
       user.hasCheckedSubscription4 = subscriptions.isSubscribedToChannel4;
-        } else{
-            const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions);
-            const fullCoins = coins + referralCoins;
-            user.coins = fullCoins;
-            user.nickname = nickname;
-            user.firstName = firstName; // Обновляем имя
-            user.hasTelegramPremium = hasTelegramPremium;
-            user.hasCheckedSubscription = subscriptions.isSubscribedToChannel1;
-            user.hasCheckedSubscription2 = subscriptions.isSubscribedToChannel2;
-            user.hasCheckedSubscription3 = subscriptions.isSubscribedToChannel3;
-            user.hasCheckedSubscription4 = subscriptions.isSubscribedToChannel4;
-        }
+
       await user.save();
     }
 
