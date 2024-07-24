@@ -107,7 +107,19 @@ function estimateAccountCreationDate(userId) {
   return estimatedDate;
 }
 
+function calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions) {
 
+  const currentYear = new Date().getFullYear();
+  const accountYear = accountCreationDate.getFullYear();
+  const yearsOld = currentYear - accountYear;
+  const baseCoins = yearsOld * 500;
+  const premiumBonus = hasTelegramPremium ? 500 : 0;
+  const subscriptionBonus1 = subscriptions.isSubscribedToChannel1 ? 1000 : 0;
+  const subscriptionBonus2 = subscriptions.isSubscribedToChannel2 ? 750 : 0;
+  const subscriptionBonus3 = subscriptions.isSubscribedToChannel3 ? 750 : 0;
+  const subscriptionBonus4 = subscriptions.isSubscribedToChannel4 ? 750 : 0;
+  return baseCoins + premiumBonus + subscriptionBonus1 + subscriptionBonus2 + subscriptionBonus3 + subscriptionBonus4;
+}
 
 async function checkChannelSubscription(telegramId) {
   try {
@@ -212,6 +224,7 @@ app.post('/check-subscription', async (req, res) => {
     if (user) {
       if (subscriptions.isSubscribedToChannel1 && !user.hasCheckedSubscription) {
         user.coins += 1000; // Добавляем награду за подписку на первый канал
+  
         user.hasCheckedSubscription = true;
       }
       if (subscriptions.isSubscribedToChannel2 && !user.hasCheckedSubscription2) {
@@ -382,43 +395,35 @@ app.post('/get-coins', async (req, res) => {
     let user = await UserProgress.findOne({ telegramId: userId });
     const referralCoins = user.referredUsers.reduce((acc, ref) => acc + ref.earnedCoins, 0);
     const totalCoins = user.coins + referralCoins;
-    const hasReceivedTwitterReward = user ? user.hasReceivedTwitterReward : false;
-
-    function calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions) {
-
-        const currentYear = new Date().getFullYear();
-        const accountYear = accountCreationDate.getFullYear();
-        const yearsOld = currentYear - accountYear;
-        const baseCoins = yearsOld * 500;
-        const premiumBonus = hasTelegramPremium ? 500 : 0;
-        const subscriptionBonus1 = subscriptions.isSubscribedToChannel1 ? 1000 : 0;
-        const subscriptionBonus2 = subscriptions.isSubscribedToChannel2 ? 750 : 0;
-        const subscriptionBonus3 = subscriptions.isSubscribedToChannel3 ? 750 : 0;
-        const subscriptionBonus4 = subscriptions.isSubscribedToChannel4 ? 750 : 0;
-        const twitterBonus = hasReceivedTwitterReward ? 500 : 0;
-      
-        return baseCoins + premiumBonus + subscriptionBonus1 + subscriptionBonus2 + subscriptionBonus3 + subscriptionBonus4 + twitterBonus;
-      }
-
     if (!user) {
-      const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions, hasReceivedTwitterReward);
-      user = new UserProgress({ telegramId: userId, nickname, firstName, coins, hasTelegramPremium, hasCheckedSubscription: subscriptions.isSubscribedToChannel1, hasCheckedSubscription2: subscriptions.isSubscribedToChannel2, hasCheckedSubscription3: subscriptions.isSubscribedToChannel3, hasCheckedSubscription4: subscriptions.isSubscribedToChannel4, hasReceivedTwitterReward
-      });
+      const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions);
+      user = new UserProgress({ telegramId: userId, nickname, firstName, coins, hasTelegramPremium, hasCheckedSubscription: subscriptions.isSubscribedToChannel1, hasCheckedSubscription2: subscriptions.isSubscribedToChannel2, hasCheckedSubscription3: subscriptions.isSubscribedToChannel3, hasCheckedSubscription4: subscriptions.isSubscribedToChannel4 });
       await user.save();
     } else {
-      const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions, hasReceivedTwitterReward);
-      const fullCoins = coins + referralCoins;
-      user.coins = fullCoins;
-      user.nickname = nickname;
-      user.firstName = firstName; // Обновляем имя
+        if(user.hasReceivedTwitterReward){
+            
+            const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions);
+            const fullCoins = coins + referralCoins;
+             user.coins = fullCoins + 500;
+             user.nickname = nickname;
+             user.firstName = firstName; // Обновляем имя
       user.hasTelegramPremium = hasTelegramPremium;
       user.hasCheckedSubscription = subscriptions.isSubscribedToChannel1;
       user.hasCheckedSubscription2 = subscriptions.isSubscribedToChannel2;
       user.hasCheckedSubscription3 = subscriptions.isSubscribedToChannel3;
       user.hasCheckedSubscription4 = subscriptions.isSubscribedToChannel4;
-      user.hasReceivedTwitterReward = hasReceivedTwitterReward;
-
-
+        } else{
+            const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions);
+            const fullCoins = coins + referralCoins;
+            user.coins = fullCoins;
+            user.nickname = nickname;
+            user.firstName = firstName; // Обновляем имя
+            user.hasTelegramPremium = hasTelegramPremium;
+            user.hasCheckedSubscription = subscriptions.isSubscribedToChannel1;
+            user.hasCheckedSubscription2 = subscriptions.isSubscribedToChannel2;
+            user.hasCheckedSubscription3 = subscriptions.isSubscribedToChannel3;
+            user.hasCheckedSubscription4 = subscriptions.isSubscribedToChannel4;
+        }
       await user.save();
     }
 
@@ -431,8 +436,6 @@ app.post('/get-coins', async (req, res) => {
       hasCheckedSubscription2: user.hasCheckedSubscription2,
       hasCheckedSubscription3: user.hasCheckedSubscription3,
       hasCheckedSubscription4: user.hasCheckedSubscription4,
-      hasReceivedTwitterReward: user.hasReceivedTwitterReward,
-
       accountCreationDate: accountCreationDate.toISOString()
     });
   } catch (error) {
@@ -614,7 +617,7 @@ bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
   const accountCreationDate = estimateAccountCreationDate(userId);
   const hasTelegramPremium = await checkTelegramPremium(userId);
   const subscriptions = await checkChannelSubscription(userId);
-  const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions, hasReceivedTwitterReward);
+  const coins = calculateCoins(accountCreationDate, hasTelegramPremium, subscriptions);
 
   try {
     let user = await UserProgress.findOne({ telegramId: userId });
