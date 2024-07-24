@@ -224,22 +224,19 @@ app.post('/check-subscription', async (req, res) => {
     if (user) {
       if (subscriptions.isSubscribedToChannel1 && !user.hasCheckedSubscription) {
         user.coins += 1000; // Добавляем награду за подписку на первый канал
-        user.coinsSub += 1000;
+  
         user.hasCheckedSubscription = true;
       }
       if (subscriptions.isSubscribedToChannel2 && !user.hasCheckedSubscription2) {
-        user.coins += 750;
-        user.coinsSub += 750; // Добавляем награду за подписку на второй канал
+        user.coins += 750; // Добавляем награду за подписку на второй канал
         user.hasCheckedSubscription2 = true;
       }
       if (subscriptions.isSubscribedToChannel3 && !user.hasCheckedSubscription3) {
-        user.coins += 750;
-        user.coinsSub += 750; // Добавляем награду за подписку на второй канал
+        user.coins += 750; // Добавляем награду за подписку на второй канал
         user.hasCheckedSubscription3 = true;
       }
       if (subscriptions.isSubscribedToChannel4 && !user.hasCheckedSubscription4) {
-        user.coins += 750;
-        user.coinsSub += 750; // Добавляем награду за подписку на второй канал
+        user.coins += 750; // Добавляем награду за подписку на второй канал
         user.hasCheckedSubscription4 = true;
       }
       await user.save();
@@ -303,34 +300,44 @@ app.post('/check-subscription-and-update', async (req, res) => {
         // Проверка подписки на первый канал
         if (subscriptions.isSubscribedToChannel1 && !user.hasCheckedSubscription) {
           updatedCoins += 1000; // Добавляем награду за подписку на первый канал
+          user.coinsSub += 1000;
           user.hasCheckedSubscription = true;
         } else if (!subscriptions.isSubscribedToChannel1 && user.hasCheckedSubscription) {
           updatedCoins -= 1000; // Вычитаем монеты за отписку от первого канала
+          user.coinsSub += 1000;
+
           user.hasCheckedSubscription = false;
         }
     
         // Проверка подписки на второй канал
         if (subscriptions.isSubscribedToChannel2 && !user.hasCheckedSubscription2) {
           updatedCoins += 750; // Добавляем награду за подписку на второй канал
+          user.coinsSub += 750;
           user.hasCheckedSubscription2 = true;
         } else if (!subscriptions.isSubscribedToChannel2 && user.hasCheckedSubscription2) {
           updatedCoins -= 750; // Вычитаем монеты за отписку от второго канала
+          user.coinsSub += 750;
+
           user.hasCheckedSubscription2 = false;
         }
 
         if (subscriptions.isSubscribedToChannel3 && !user.hasCheckedSubscription3) {
             updatedCoins += 750; // Добавляем награду за подписку на второй канал
+            user.coinsSub += 750;
             user.hasCheckedSubscription3 = true;
           } else if (!subscriptions.isSubscribedToChannel3 && user.hasCheckedSubscription3) {
             updatedCoins -= 750; // Вычитаем монеты за отписку от второго канала
+            user.coinsSub += 750;
             user.hasCheckedSubscription3 = false;
         }
         
         if (subscriptions.isSubscribedToChannel4 && !user.hasCheckedSubscription4) {
             updatedCoins += 750; // Добавляем награду за подписку на второй канал
+            user.coinsSub += 750;
             user.hasCheckedSubscription4 = true;
           } else if (!subscriptions.isSubscribedToChannel4 && user.hasCheckedSubscription4) {
             updatedCoins -= 750; // Вычитаем монеты за отписку от второго канала
+            user.coinsSub += 750;
             user.hasCheckedSubscription4 = false;
           }
   
@@ -339,6 +346,7 @@ app.post('/check-subscription-and-update', async (req, res) => {
         await user.save();
         res.json({
           success: true,
+          Coinsub: user.coinsSub,
           coins: updatedCoins,
           hasCheckedSubscription: user.hasCheckedSubscription,
           hasCheckedSubscription2: user.hasCheckedSubscription2,
