@@ -14,7 +14,7 @@ const token = '7222673541:AAFqnlKKizzWcDB08QBJDRdqnmp21Onldro';
 const bot = new TelegramBot(token, { polling: true });
 const CHANNEL_ID = -1002187857390; 
 const CHANNEL_ID_2 =-1002246870197;
-const CHANNEL_ID_3 = -1002088709942; 
+const CHANNEL_ID_3 = -1002074555476; 
 const CHANNEL_ID_4 = -1002241923161; 
 
 const userStates = {};
@@ -318,11 +318,11 @@ app.post('/check-subscription-and-update', async (req, res) => {
             // Проверка подписки на первый канал
             if (subscriptions.isSubscribedToChannel1 && !user.hasCheckedSubscription) {
                 updatedCoins += 1000; // Добавляем награду за подписку на первый канал
-                updatedCoinsSub += 1000; // Сохраняем монеты за подписку в отдельное поле
+                // Сохраняем монеты за подписку в отдельное поле
                 user.hasCheckedSubscription = true;
             } else if (!subscriptions.isSubscribedToChannel1 && user.hasCheckedSubscription) {
                 updatedCoins -= 1000; // Вычитаем монеты за отписку от первого канала
-                updatedCoinsSub -= 1000; // Вычитаем монеты за отписку в отдельное поле
+                 // Вычитаем монеты за отписку в отдельное поле
                 user.hasCheckedSubscription = false;
             }
 
