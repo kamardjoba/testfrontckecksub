@@ -509,6 +509,7 @@ const sendInviteMessage = async (telegramId, referralCode, appImageUrl) => {
       }
     };
   
+    
     try {
       await bot.telegram.sendMessage(inviteMessage);
       await bot.telegram.sendPhoto(imageMessage);
