@@ -476,27 +476,26 @@ app.get('/leaderboard', async (req, res) => {
 });
 
 app.post('/send-invite', async (req, res) => {
-    const { chatId, referralCode } = req.body;
-  
+    const { telegramLink, referralCode } = req.body;
+
+    const message = `
+        Meow, let's see who is OG 🐱
+        [Join CATS](https://t.me/catsgang_bot/join?startapp=gIePG6GfWXBQSAvw2bCF_v)
+        Telegram
+        Join CATS
+        ${telegramLink}
+    `;
+
     try {
-      const telegramLink = `https://t.me/Octies_bot?start=${referralCode}`;
-      const messageText = 'Присоединяйся к нашему приложению и получай бонусы!';
-  
-      await bot.sendMessage(chatId, messageText, {
-        reply_markup: {
-          inline_keyboard: [
-            [{ text: 'Присоединиться', url: telegramLink }]
-          ]
-        }
-      });
-  
-      res.json({ success: true, message: 'Сообщение отправлено.' });
+        const response = await bot.sendMessage(CHANNEL_ID, message, { parse_mode: 'Markdown' });
+        const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(telegramLink)}&text=${encodeURIComponent('Присоединяйся к нашему приложению и получай бонусы!')}`;
+        res.json({ success: true, telegramUrl });
     } catch (error) {
-      console.error('Ошибка при отправке сообщения:', error);
-      res.status(500).json({ success: false, message: 'Ошибка при отправке сообщения.' });
+        console.error('Error sending Telegram message:', error);
+        res.status(500).json({ success: false, message: 'Error sending Telegram message.' });
     }
-  });
-  
+});
+
 
 app.post('/add-coins', async (req, res) => {
     const { userId, amount } = req.body;
