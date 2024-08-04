@@ -475,27 +475,59 @@ app.get('/leaderboard', async (req, res) => {
   }
 });
 
-app.post('/send-invite', async (req, res) => {
-    const { telegramLink, referralCode } = req.body;
-
-    const message = `
-        Meow, let's see who is OG 🐱
-        [Join CATS](https://t.me/catsgang_bot/join?startapp=gIePG6GfWXBQSAvw2bCF_v)
-        Telegram
-        Join CATS
-        ${telegramLink}
-    `;
-
+const sendInviteMessage = async (telegramId, referralCode, appImageUrl) => {
+    const telegramLink = `https://t.me/your_bot_name?start=${referralCode}`;
+    const messageText = 'Meow, let\'s see who is OG 😺';
+    const inviteMessage = {
+      chat_id: telegramId,
+      text: messageText,
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: 'LAUNCH',
+              url: telegramLink
+            }
+          ]
+        ]
+      }
+    };
+  
+    const imageMessage = {
+      chat_id: telegramId,
+      photo: appImageUrl,
+      caption: 'Join CATS',
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: 'LAUNCH',
+              url: telegramLink
+            }
+          ]
+        ]
+      }
+    };
+  
     try {
-        const response = await bot.sendMessage(CHANNEL_ID, message, { parse_mode: 'Markdown' });
-        const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(telegramLink)}&text=${encodeURIComponent('Присоединяйся к нашему приложению и получай бонусы!')}`;
-        res.json({ success: true, telegramUrl });
+      await bot.telegram.sendMessage(inviteMessage);
+      await bot.telegram.sendPhoto(imageMessage);
     } catch (error) {
-        console.error('Error sending Telegram message:', error);
-        res.status(500).json({ success: false, message: 'Error sending Telegram message.' });
+      console.error('Error sending invite message:', error);
     }
-});
-
+  };
+  
+  // Endpoint to trigger sending invite message
+  app.post('/send-invite', async (req, res) => {
+    const { telegramId, referralCode } = req.body;
+    const appImageUrl = 'https://your-image-url.com/image.png'; // Replace with your app image URL
+    try {
+      await sendInviteMessage(telegramId, referralCode, appImageUrl);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ success: false, message: 'Error sending invite message.' });
+    }
+  });
 
 app.post('/add-coins', async (req, res) => {
     const { userId, amount } = req.body;
