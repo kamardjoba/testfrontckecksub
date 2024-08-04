@@ -475,6 +475,29 @@ app.get('/leaderboard', async (req, res) => {
   }
 });
 
+app.post('/send-invite', async (req, res) => {
+    const { chatId, referralCode } = req.body;
+  
+    try {
+      const telegramLink = `https://t.me/Octies_bot?start=${referralCode}`;
+      const messageText = 'Присоединяйся к нашему приложению и получай бонусы!';
+  
+      await bot.sendMessage(chatId, messageText, {
+        reply_markup: {
+          inline_keyboard: [
+            [{ text: 'Присоединиться', url: telegramLink }]
+          ]
+        }
+      });
+  
+      res.json({ success: true, message: 'Сообщение отправлено.' });
+    } catch (error) {
+      console.error('Ошибка при отправке сообщения:', error);
+      res.status(500).json({ success: false, message: 'Ошибка при отправке сообщения.' });
+    }
+  });
+  
+
 app.post('/add-coins', async (req, res) => {
     const { userId, amount } = req.body;
   
