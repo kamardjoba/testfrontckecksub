@@ -476,7 +476,7 @@ app.get('/leaderboard', async (req, res) => {
 });
 
 const sendInviteMessage = async (telegramId, referralCode, appImageUrl) => {
-    const telegramLink = `https://t.me/your_bot_name?start=${referralCode}`;
+    const telegramLink = `https://t.me/sub_test_chek_bot?start=${referralCode}`;
     const messageText = 'Meow, let\'s see who is OG 😺';
     const inviteMessage = {
       chat_id: telegramId,
@@ -520,7 +520,7 @@ const sendInviteMessage = async (telegramId, referralCode, appImageUrl) => {
   // Endpoint to trigger sending invite message
   app.post('/send-invite', async (req, res) => {
     const { telegramId, referralCode } = req.body;
-    const appImageUrl = 'https://your-image-url.com/image.png'; // Replace with your app image URL
+    const appImageUrl = 'https://bitclifprofilephoto.s3.eu-north-1.amazonaws.com/profile_photos/727060329.jpg'; // Replace with your app image URL
     try {
       await sendInviteMessage(telegramId, referralCode, appImageUrl);
       res.json({ success: true });
