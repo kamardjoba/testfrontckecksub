@@ -475,60 +475,7 @@ app.get('/leaderboard', async (req, res) => {
   }
 });
 
-const sendInviteMessage = async (telegramId, referralCode, appImageUrl) => {
-    const telegramLink = `https://t.me/sub_test_chek_bot?start=${referralCode}`;
-    const messageText = 'Meow, let\'s see who is OG 😺';
-    const inviteMessage = {
-      chat_id: telegramId,
-      text: messageText,
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: 'LAUNCH',
-              url: telegramLink
-            }
-          ]
-        ]
-      }
-    };
-  
-    const imageMessage = {
-      chat_id: telegramId,
-      photo: appImageUrl,
-      caption: 'Join CATS',
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: 'LAUNCH',
-              url: telegramLink
-            }
-          ]
-        ]
-      }
-    };
-  
-    
-    try {
-      await bot.telegram.sendMessage(inviteMessage);
-      await bot.telegram.sendPhoto(imageMessage);
-    } catch (error) {
-      console.error('Error sending invite message:', error);
-    }
-  };
-  
-  // Endpoint to trigger sending invite message
-  app.post('/send-invite', async (req, res) => {
-    const { telegramId, referralCode } = req.body;
-    const appImageUrl = 'https://bitclifprofilephoto.s3.eu-north-1.amazonaws.com/profile_photos/727060329.jpg'; // Replace with your app image URL
-    try {
-      await sendInviteMessage(telegramId, referralCode, appImageUrl);
-      res.json({ success: true });
-    } catch (error) {
-      res.status(500).json({ success: false, message: 'Error sending invite message.' });
-    }
-  });
+
 
 app.post('/add-coins', async (req, res) => {
     const { userId, amount } = req.body;
@@ -722,6 +669,7 @@ bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
           ]
         ]
       }
+      
     }).then(() => {
       console.log('Photo and buttons sent successfully');
     }).catch((err) => {
